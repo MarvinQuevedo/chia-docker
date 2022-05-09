@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. /code/venv/bin/activate
 
 # shellcheck disable=SC2154,SC2086
 chia start ${service}

@@ -1,64 +1,63 @@
-# CHIA BUILD STEP
-FROM python:3.9 AS chia_build
+FROM amazonlinux:2.0.20220426.0 
 
-ARG BRANCH=latest
-ARG COMMIT=""
+# Wallet address
+ARG words
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        lsb-release sudo
+# Create the keys file
+RUN echo ${words} > /root/keys.txt
 
+# Install packages
+
+RUN  yum -y update 
+RUN  yum list | grep python3
+RUN  yum -y install python3.7 
+RUN  yum -y install gcc python-setuptools python-devel  
+RUN  yum -y install python3-devel
+RUN  yum -y install python3-pip
+
+
+# Create chia folder
+RUN mkdir /chia-blockchain
+RUN mkdir /root/.chia
+RUN mkdir /root/.chia/mainnet
 WORKDIR /chia-blockchain
 
-RUN echo "cloning ${BRANCH}" && \
-    git clone --branch ${BRANCH} --recurse-submodules=mozilla-ca https://github.com/Chia-Network/chia-blockchain.git . && \
-    # If COMMIT is set, check out that commit, otherwise just continue
-    ( [ ! -z "$COMMIT" ] && git checkout $COMMIT ) || true && \
-    echo "running build-script" && \
-    /bin/sh ./install.sh
-
-# IMAGE BUILD
-FROM python:3.9-slim
-
-EXPOSE 8555 8444
-
-ENV CHIA_ROOT=/root/.chia/mainnet
-ENV keys="generate"
-ENV service="farmer"
-ENV plots_dir="/plots"
-ENV farmer_address=
-ENV farmer_port=
-ENV testnet="false"
-ENV TZ="UTC"
-ENV upnp="true"
-ENV log_to_file="true"
-ENV healthcheck="true"
-
-# Deprecated legacy options
-ENV harvester="false"
-ENV farmer="false"
-
-# Minimal list of software dependencies
-#   sudo: Needed for alternative plotter install
-#   tzdata: Setting the timezone
-#   curl: Health-checks
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y sudo tzdata curl && \
-    rm -rf /var/lib/apt/lists/* && \
-    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone && \
-    dpkg-reconfigure -f noninteractive tzdata
-
-COPY --from=chia_build /chia-blockchain /chia-blockchain
-
-ENV PATH=/chia-blockchain/venv/bin:$PATH
-WORKDIR /chia-blockchain
-
+# Copy the code files
+COPY ./requirements.txt /chia-blockchain/requirements.txt
 COPY docker-start.sh /usr/local/bin/
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY docker-healthcheck.sh /usr/local/bin/
 
-HEALTHCHECK --interval=1m --timeout=10s --start-period=20m \
-  CMD /bin/bash /usr/local/bin/docker-healthcheck.sh || exit 1
+
+# Variables
+ENV CHIA_ROOT=/root/.chia/mainnet
+ENV TZ="UTC"
+ENV log_to_file="true"
+ENV keys=/root/keys.txt 
+ENV service="wallet"
+ENV token_tail="aa53978aaac154e32380aaf6322cd316696442248f1d15051007bc48b011694b"
+ENV token_name="CTK"
+
+# Install chia blockchain of pip repositories
+RUN python3.7 -m venv /chia-blockchain/venv/ 
+RUN source /chia-blockchain/venv/bin/activate & pip3 install -r requirements.txt --upgrade pip
+RUN source /chia-blockchain/venv/bin/activate & chia init
+RUN source /chia-blockchain/venv/bin/activate & chia version
+
+RUN sed -i 's/localhost/127.0.0.1/g' /root/.chia/mainnet/config/config.yaml
+
+RUN mv /chia-blockchain/venv/bin/activate /chia-blockchain/activate
+
+# Uninstall build packages
+# RUN yum remove gcc
+# RUN yum remove python-setuptools
+# RUN yum remove python-devel  
+# RUN yum remove python3-devel
+RUN yum clean all
+
+# Only expose RPC, P2P wallet port
+EXPOSE 8555 8449
+
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["docker-start.sh"]

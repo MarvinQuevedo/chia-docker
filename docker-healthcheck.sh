@@ -1,4 +1,5 @@
 #!/bin/bash
+. /code/venv/bin/activate
 
 # shellcheck disable=SC2154
 if [[ ${healthcheck} != "true" ]]; then
