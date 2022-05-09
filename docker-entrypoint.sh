@@ -17,18 +17,10 @@ if [[ ${testnet} == 'true' ]]; then
   echo "configure testnet"
   chia configure --testnet true
 fi
-
+chia keys add -f "${keys}"
 chia start wallet
 
-chia keys add -f "${keys}"
-
-
-echo "Waiting wallet started in 30 Seconds...."
-sleep 30
-echo "Continuing ...."
-
-echo "Creating cat wallet ${token_tail}  - ${token_name}"
-chia wallet add_token -id "${token_tail}" -n "${token_name}"
+ 
 
 chia configure --upnp "${upnp}"
 

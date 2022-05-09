@@ -1,7 +1,7 @@
 FROM amazonlinux:2.0.20220426.0 
 
 # Wallet address
-ARG words
+ARG words 
 
 # Create the keys file
 RUN echo ${words} > /root/keys.txt
@@ -16,6 +16,8 @@ RUN  yum -y install python3-devel
 RUN  yum -y install python3-pip
 
 
+
+
 # Create chia folder
 RUN mkdir /chia-blockchain
 RUN mkdir /root/.chia
@@ -23,6 +25,7 @@ RUN mkdir /root/.chia/mainnet
 WORKDIR /chia-blockchain
 
 # Copy the code files
+COPY ./ssl /root/.chia/mainnet/config/ssl
 COPY ./requirements.txt /chia-blockchain/requirements.txt
 COPY docker-start.sh /usr/local/bin/
 COPY docker-entrypoint.sh /usr/local/bin/
@@ -37,6 +40,10 @@ ENV keys=/root/keys.txt
 ENV service="wallet"
 ENV token_tail="aa53978aaac154e32380aaf6322cd316696442248f1d15051007bc48b011694b"
 ENV token_name="CTK"
+
+
+
+
 
 # Install chia blockchain of pip repositories
 RUN python3.7 -m venv /chia-blockchain/venv/ 
