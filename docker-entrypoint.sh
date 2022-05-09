@@ -18,11 +18,7 @@ if [[ ${testnet} == 'true' ]]; then
   chia configure --testnet true
 fi
 chia keys add -f "${keys}"
-chia start wallet
-
- 
-
-chia configure --upnp "${upnp}"
+   
 
 if [[ -n "${log_level}" ]]; then
   chia configure --log-level "${log_level}"
@@ -62,4 +58,5 @@ else
 fi
  
 
-exec "$@"
+
+docker-start.sh
