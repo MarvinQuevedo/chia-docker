@@ -63,7 +63,7 @@ RUN mv /chia-blockchain/venv/bin/activate /chia-blockchain/activate
 RUN yum clean all
 
 # Only expose RPC, P2P wallet port
-EXPOSE 8555 8449
+EXPOSE 8449 9256
 
 
 ENTRYPOINT ["docker-entrypoint.sh"]
