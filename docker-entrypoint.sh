@@ -17,7 +17,8 @@ if [[ ${testnet} == 'true' ]]; then
   echo "configure testnet"
   chia configure --testnet true
 fi
-chia keys add -f "${keys}"
+chia keys add -f /root/keys.txt -l main
+ 
    
 
 if [[ -n "${log_level}" ]]; then
