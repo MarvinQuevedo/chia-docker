@@ -7,6 +7,7 @@ docker volume create chia_wallet1_vol
 ## Build
 
 First, copy the ssl files to ./ssl
+cp -r ~/.chia/mainnet/config/ssl/ ./ssl
 
 docker build . -t chia_wallet1    --build-arg words="mnemonics words"
 
@@ -16,9 +17,10 @@ docker build . -t chia_wallet1    --build-arg words="mnemonics words"
 
 .chia_wallet/mainnet
 
+
 ### run docker
 
-docker run -d --name chia_wallet1  -p 8556:8555  -p 8450:8449  -v ~/.chia_wallet/mainnet:/root/.chia/mainnet  chia_wallet1
+docker run -d --name chia_wallet3  -p 8556:8555  -p 8450:8449  -v ~/.chia_wallet/mainnet:/root/.chia/mainnet  chia_wallet3
 
 
 
